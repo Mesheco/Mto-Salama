@@ -1,0 +1,16 @@
+# Secrets - never upload your API keys
+.env
+
+# Python environment and cache
+.venv/
+__pycache__/
+*.pyc
+
+# Jac cache and saved graph data
+.jac/
+
+# Local override log (demo data)
+overrides.csv
+
+# Large downloaded data (re-downloadable)
+data/raw/

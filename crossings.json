@@ -1,0 +1,17 @@
+{
+  "_note": "Demo crossing is FICTIONAL, modelled on a Makueni seasonal river. Coordinates are approximate test points in the Makueni hills, not a real crossing.",
+  "crossings": [
+    {
+      "id": "mto-kavuthu-drift",
+      "name": "Mto Kavuthu drift",
+      "fictional": true,
+      "county": "Makueni (demo)",
+      "crossing_point": {"lat": -2.00, "lon": 37.40},
+      "upstream_points": [
+        {"name": "Upstream hills A", "lat": -1.80, "lon": 37.33},
+        {"name": "Upstream hills B", "lat": -1.85, "lon": 37.28},
+        {"name": "Upstream valley C", "lat": -1.92, "lon": 37.36}
+      ]
+    }
+  ]
+}
