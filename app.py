@@ -13,25 +13,32 @@ import streamlit as st
 
 import jaclang  # noqa: F401  (lets Python import .jac files)
 import agents   # agents.jac - the four-agent pipeline
+from ml.predict import predict_surge
 from weather import get_upstream_rain
 
 OVERRIDE_LOG = "overrides.csv"
+REPORT_PATH = os.path.join("models", "report.md")
 
 # Demo scenarios: work with no internet and no API key (the 3 required test cases).
+# "features" are the upstream-rain numbers the surge model would see.
 SCENARIOS = {
     "Normal - heavy rain upstream, sunny here": {
         "rain": 52.0, "age": 1.0,
+        "features": {"rain_1d": 18, "rain_3d": 46, "rain_7d": 78, "rain_14d": 104,
+                     "max_point_3d": 52, "month": 4, "long_rains": 1, "short_rains": 0},
         "messages": "Maji imeanza kujaa kwa drift, inakuja na nguvu\n"
                     "watu wanavuka na boda saa hii\n"
                     "Habari za asubuhi wote",
     },
     "Confusing - little rain, but villagers report rising water": {
         "rain": 6.0, "age": 1.0,
+        "features": {"rain_1d": 1, "rain_3d": 4, "rain_7d": 9, "rain_14d": 15,
+                     "max_point_3d": 6, "month": 8, "long_rains": 0, "short_rains": 0},
         "messages": "Maji imejaa kwa drift ya chini\n"
                     "Drift imeharibika upande wa shule",
     },
     "Failure - weather data unavailable": {
-        "rain": -1.0, "age": 0.0,
+        "rain": -1.0, "age": 0.0, "features": None,
         "messages": "Mambo vipi, kuna mvua huko juu?",
     },
 }
@@ -47,6 +54,13 @@ STYLE = {
 def load_crossings() -> list:
     with open("crossings.json", encoding="utf-8") as f:
         return json.load(f)["crossings"]
+
+
+@st.cache_data(ttl=600, show_spinner=False)
+def live_rain(crossing_id: str) -> dict:
+    """Fetch upstream rain at most once every 10 minutes per crossing."""
+    c = next(c for c in load_crossings() if c["id"] == crossing_id)
+    return get_upstream_rain(c)
 
 
 def log_override(crossing: str, model_status: str, chosen: str, reason: str) -> None:
@@ -91,11 +105,14 @@ if mode.startswith("Demo"):
     name = st.selectbox("Scenario", list(SCENARIOS))
     sc = SCENARIOS[name]
     rain, age, default_msgs, points = sc["rain"], sc["age"], sc["messages"], None
+    features = sc["features"]
 else:
     with st.spinner("Checking rain in the hills upstream..."):
-        w = get_upstream_rain(crossing)
+        w = live_rain(crossing["id"])
     rain, age, default_msgs, points = w["rain_3d_mm"], w["data_age_hours"], "", w["points"]
+    features = w["features"]
     if not w["ok"]:
+        live_rain.clear()  # don't remember a failure; try again next time
         st.warning(w["error"] + " The system will treat the crossing as CAUTION.")
 
 messages = st.text_area(
@@ -107,7 +124,9 @@ messages = st.text_area(
 if st.button("Check crossing", type="primary", use_container_width=True):
     msgs = [m for m in messages.splitlines() if m.strip()]
     with st.spinner("Agents are reading reports and checking the risk..."):
-        st.session_state.result = agents.run_check(crossing["name"], float(rain), float(age), msgs)
+        ml = predict_surge(features) if features else {"available": False}
+        st.session_state.ml = ml
+        st.session_state.result = agents.run_check(crossing["name"], float(rain), float(age), msgs, ml)
         st.session_state.points = points
         st.session_state.override = None
         st.session_state.approved = False
@@ -120,6 +139,20 @@ if res:
     st.subheader("Why")
     for r in res["reasons"]:
         st.write(f"• {r}")
+
+    ml = st.session_state.get("ml", {})
+    with st.expander("Surge model (machine learning)"):
+        if ml.get("available"):
+            st.write(f"Chance the river surges by tomorrow: **{ml['probability']:.0%}** "
+                     f"({ml['level']} risk)")
+            st.progress(min(1.0, max(0.0, ml["probability"])))
+            if os.path.exists(REPORT_PATH):
+                with open(REPORT_PATH, encoding="utf-8") as f:
+                    st.markdown(f.read())
+        elif ml.get("reasons"):
+            st.write(ml["reasons"][0])
+        else:
+            st.write("No rain data, so the surge model could not run.")
 
     if st.session_state.get("points"):
         with st.expander("Upstream rain by point"):

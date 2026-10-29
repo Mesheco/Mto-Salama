@@ -7,3 +7,4 @@ Built for SafeSpace Hacks (build window 17 Oct - 22 Nov 2026). One line per work
 | 2026-10-27 | Project set up: repo, environment, data check script. Demo crossing (fictional, Makueni-style) defined. |
 | 2026-10-28 | Switched to Claude API + Jac/byLLM. First agent pipeline (agents.jac): Listener, Fusion, Skeptic, Messenger on a crossing graph. Offline demo mode and AI-offline fallback both work. |
 | 2026-10-28 | Phase 1 first screen: Streamlit app (status board, reasons, bilingual draft alert, approve, "I disagree" override with log). Live upstream rain fetcher. Keyword backup reader. Normal / confusing / failure test cases all pass. |
+| 2026-10-29 | Set up GitHub repo. ML surge predictor: history download (Nyando + Athi, 2000-2025), Random Forest trained on rain features, tested on unseen years, plain-language explanations. Fusion agent now uses the model, with rain rules as fallback. |

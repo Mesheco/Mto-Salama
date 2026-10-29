@@ -75,7 +75,10 @@ obj Assessment {
 node Crossing {
     has name: str,
         upstream_rain_3d_mm: float,   # rain in upstream hills, last 3 days; -1 = unknown
-        data_age_hours: float;        # how old the weather data is
+        data_age_hours: float,        # how old the weather data is
+        ml_level: str = "",           # surge model: high / medium / low; "" = no model
+        ml_prob: float = -1.0,        # surge model probability (0-1); -1 = no model
+        ml_reasons: list[str] = [];   # surge model explanation
 }
 
 node Report {
@@ -106,12 +109,29 @@ def keyword_classify(message: str) -> str {
 
 # ---------------------------------------------------------------- agent 2: fusion
 
-def fuse(rain_mm: float, kinds: list[str]) -> Assessment {
+def fuse(
+    rain_mm: float,
+    kinds: list[str],
+    ml_level: str,
+    ml_prob: float,
+    ml_reasons: list[str]
+) -> Assessment {
     reasons: list[str] = [];
     rising = kinds.count("WATER_RISING") + kinds.count("INFRASTRUCTURE_DAMAGED");
     status = "SAFE-LOOKING";
 
-    if rain_mm >= 40.0 {
+    # Machine signal: the trained surge model when available, simple rain rules otherwise.
+    if ml_level in ["high", "medium", "low"] {
+        if ml_level == "high" {
+            status = "DO NOT CROSS";
+        } elif ml_level == "medium" {
+            status = "CAUTION";
+        }
+        reasons.append(f"Surge model: {ml_prob:.0%} chance the river surges by tomorrow.");
+        for r in ml_reasons {
+            reasons.append(r);
+        }
+    } elif rain_mm >= 40.0 {
         status = "DO NOT CROSS";
         reasons.append(f"{rain_mm:.0f} mm of rain fell upstream in the last 3 days.");
     } elif rain_mm >= 20.0 {
@@ -140,9 +160,16 @@ def fuse(rain_mm: float, kinds: list[str]) -> Assessment {
 
 # ---------------------------------------------------------------- agent 3: skeptic
 
-def skeptic(a: Assessment, rain_mm: float, data_age_hours: float, kinds: list[str]) -> Assessment {
+def skeptic(
+    a: Assessment,
+    rain_mm: float,
+    data_age_hours: float,
+    kinds: list[str],
+    ml_level: str
+) -> Assessment {
     rising = kinds.count("WATER_RISING") + kinds.count("INFRASTRUCTURE_DAMAGED");
-    if rain_mm >= 0.0 and rain_mm < 20.0 and rising >= 1 {
+    machine_says_low = ml_level == "low" or (ml_level == "" and rain_mm >= 0.0 and rain_mm < 20.0);
+    if machine_says_low and rising >= 1 {
         a.reasons.append(
             "Rain data and community reports disagree. Reports from the river are trusted here, "
             + "because rain in a small catchment can be missed by the weather model."
@@ -248,15 +275,22 @@ walker RiskCheck {
             self.trace.append(f"Listener: '{r.text}' -> {r.kind} ({r.read_by})");
         }
 
+        if here.ml_level {
+            self.trace.append(f"Surge model (ML): {here.ml_prob:.0%} chance of surge -> {here.ml_level} risk");
+        } else {
+            self.trace.append("Surge model (ML): not available -> simple rain rules used");
+        }
         a = skeptic(
-            fuse(here.upstream_rain_3d_mm, kinds),
+            fuse(here.upstream_rain_3d_mm, kinds, here.ml_level, here.ml_prob, here.ml_reasons),
             here.upstream_rain_3d_mm,
             here.data_age_hours,
-            kinds
+            kinds,
+            here.ml_level
         );
         self.trace.append(f"Fusion + Skeptic: {a.status} ({a.confidence} confidence)");
 
-        alert = template_alert(a.status, here.name, here.upstream_rain_3d_mm >= 40.0);
+        rain_driven = here.ml_level == "high" or here.upstream_rain_3d_mm >= 40.0;
+        alert = template_alert(a.status, here.name, rain_driven);
         written_by = "template";
         if USE_LLM {
             try {
@@ -278,6 +312,8 @@ walker RiskCheck {
             "alert_en": f"{alert.english} {FOOTER_EN}",
             "alert_by": written_by,
             "model": MODEL_NAME,
+            "ml_level": here.ml_level,
+            "ml_prob": here.ml_prob,
             "trace": self.trace
         };
     }
@@ -288,7 +324,8 @@ def run_check(
     crossing_name: str,
     rain_3d_mm: float,
     data_age_hours: float,
-    messages: list[str]
+    messages: list[str],
+    ml: dict[str, object] = {}
 ) -> dict[str, object] {
     # Fresh graph each time (not linked to root, so nothing is saved between runs).
     c = Crossing(
@@ -296,6 +333,11 @@ def run_check(
         upstream_rain_3d_mm=rain_3d_mm,
         data_age_hours=data_age_hours
     );
+    if ml.get("available") {
+        c.ml_level = str(ml.get("level", ""));
+        c.ml_prob = float(str(ml.get("probability", -1.0)));
+        c.ml_reasons = [str(r) for r in list(ml.get("reasons", []))];
+    }
     for m in messages {
         if m.strip() {
             c ++> Report(text=m.strip());

@@ -1,0 +1,25 @@
+{
+  "_note": "Training rivers. Coordinates are approximate; download_history.py checks nearby grid cells and keeps the one with the largest modelled river flow. Upstream points sit in the hills where the river's rain falls.",
+  "rivers": [
+    {
+      "id": "nyando",
+      "name": "River Nyando near Ahero (Kisumu)",
+      "river_point": {"lat": -0.17, "lon": 34.92},
+      "upstream_points": [
+        {"name": "Nandi Hills", "lat": 0.10, "lon": 35.18},
+        {"name": "Tinderet", "lat": -0.08, "lon": 35.35},
+        {"name": "Londiani", "lat": -0.17, "lon": 35.60}
+      ]
+    },
+    {
+      "id": "athi",
+      "name": "Athi River near Wamunyu (Machakos-Makueni)",
+      "river_point": {"lat": -1.40, "lon": 37.63},
+      "upstream_points": [
+        {"name": "Nairobi / Ngong", "lat": -1.32, "lon": 36.80},
+        {"name": "Mavoko", "lat": -1.45, "lon": 37.00},
+        {"name": "Machakos hills", "lat": -1.52, "lon": 37.26}
+      ]
+    }
+  ]
+}

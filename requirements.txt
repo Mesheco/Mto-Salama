@@ -6,6 +6,4 @@ jaclang
 byllm
 streamlit
 scikit-learn
-lightgbm
-shap
 joblib
