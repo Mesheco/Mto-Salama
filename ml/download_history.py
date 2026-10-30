@@ -28,18 +28,25 @@ START, END = "2000-01-01", "2025-12-31"
 DATA_DIR = "data"
 
 
-def get_json(url: str, params: dict, tries: int = 4) -> dict:
+def get_json(url: str, params: dict, tries: int = 6) -> dict:
     for attempt in range(1, tries + 1):
         try:
             r = requests.get(url, params=params, timeout=90)
+            if r.status_code == 429:
+                # Free API speed limit: wait for the limit to reset, then retry.
+                wait = 65 * attempt
+                print(f"    weather service says 'slow down' - waiting {wait}s (this is normal)...")
+                time.sleep(wait)
+                continue
             r.raise_for_status()
+            time.sleep(3)  # be gentle with the free service
             return r.json()
         except requests.RequestException as e:
             if attempt == tries:
                 raise
             print(f"    connection problem ({e.__class__.__name__}), retrying in {5 * attempt}s...")
             time.sleep(5 * attempt)
-    return {}
+    raise RuntimeError("Weather service kept refusing. Wait 10 minutes and run again.")
 
 
 def rain_history(lat: float, lon: float) -> pd.Series:
