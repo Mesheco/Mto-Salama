@@ -10,7 +10,7 @@ crossing dangerous - even when it is dry and sunny at the crossing.
 
 | Agent | Type | Job |
 |---|---|---|
-| Listener | Claude (byLLM) + keyword backup | Reads Kiswahili / Sheng / English community messages |
+| Listener | Our own NLP model + safety guard; Claude only when unsure | Reads Kiswahili / Sheng / English community messages |
 | Surge model | Machine learning (Random Forest) | Predicts tomorrow's surge from upstream rain; explains why |
 | Fusion | Rules (code) | Combines the surge model with community reports |
 | Skeptic | Rules (code) | Flags missing or old data and disagreements; never says "safe" |
@@ -45,12 +45,23 @@ python -m ml.train              # trains, tests on unseen years, writes models/r
 
 Without a trained model the app falls back to simple rain rules.
 
+## Train the Listener (NLP)
+
+```
+python -m nlp.train_listener    # 260 synthetic Kiswahili/Sheng/English messages
+```
+
+Add your own example messages to `data/messages.csv` and re-run to improve it.
+Results: `models/listener_report.md`.
+
 ## Files
 
 - `agents.jac` - the four-agent pipeline (Jac language, graph + walker)
 - `app.py` - Streamlit screen
 - `weather.py` - live upstream rainfall (Open-Meteo)
 - `ml/` - surge predictor: features, history download, training, prediction
+- `nlp/` - offline Listener: training, prediction, safety guard
+- `data/messages*.csv` - synthetic community messages (no real people's data)
 - `crossings.json` - the fictional demo crossing and its upstream points
 - `check_data.py`, `check_ai.py` - setup checks
 

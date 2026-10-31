@@ -26,6 +26,7 @@ import os;
 import json;
 import from dotenv { load_dotenv }
 import from byllm.lib { Model }
+import from nlp.listen { classify_local }
 
 with entry {
     load_dotenv();
@@ -263,15 +264,30 @@ walker RiskCheck {
         kinds: list[str] = [];
         report_rows: list[dict[str, str]] = [];
         for r in [here -->][?:Report] {
-            r.read_by = "keywords";
-            r.kind = keyword_classify(r.text);
-            if USE_LLM {
+            # 1. Our own offline NLP model (free, no internet).
+            local = classify_local(r.text);
+            unsure = True;
+            if local["available"] {
+                r.kind = str(local["label"]);
+                r.read_by = f"NLP model, {float(str(local['confidence'])):.0%} sure";
+                if local["guarded"] {
+                    r.read_by = "NLP model + safety guard (danger words)";
+                }
+                unsure = bool(local["unsure"]);
+            } else {
+                r.kind = keyword_classify(r.text);
+                r.read_by = "keywords";
+            }
+            # 2. Claude only for messages our model is unsure about.
+            if unsure and USE_LLM {
                 try {
                     r.kind = as_kind(classify_report(r.text));
-                    r.read_by = "Claude";
+                    r.read_by = "Claude (NLP model was unsure)";
                 } except Exception {
-                    r.read_by = "keywords (AI offline)";
+                    r.read_by = r.read_by + " - unsure, AI offline";
                 }
+            } elif unsure and local["available"] {
+                r.read_by = r.read_by + " - unsure";
             }
             kinds.append(r.kind);
             report_rows.append({"text": r.text, "kind": r.kind, "read_by": r.read_by});

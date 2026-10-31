@@ -18,6 +18,7 @@ from weather import get_upstream_rain
 
 OVERRIDE_LOG = "overrides.csv"
 REPORT_PATH = os.path.join("models", "report.md")
+LISTENER_REPORT = os.path.join("models", "listener_report.md")
 
 # Demo scenarios: work with no internet and no API key (the 3 required test cases).
 # "features" are the upstream-rain numbers the surge model would see.
@@ -167,9 +168,13 @@ if res:
                 st.write(f"{p['name']}: {val}")
 
     if res["reports"]:
-        with st.expander("How each community message was read"):
+        with st.expander("How each community message was read (NLP)"):
             for row in res["reports"]:
-                st.write(f"“{row['text']}” → **{row['kind']}** (read by {row['read_by']})")
+                st.write(f"“{row['text']}” → **{row['kind']}** ({row['read_by']})")
+            if os.path.exists(LISTENER_REPORT):
+                st.divider()
+                with open(LISTENER_REPORT, encoding="utf-8") as f:
+                    st.markdown(f.read())
 
     st.subheader("Draft alert")
     st.text_area("Kiswahili", res["alert_sw"], height=120)
