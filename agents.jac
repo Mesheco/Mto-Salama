@@ -31,7 +31,10 @@ with entry {
     load_dotenv();
 }
 
-glob MODEL_NAME = os.getenv("MTO_MODEL", "anthropic/claude-haiku-5-5"),
+glob HAS_KEY = os.getenv("ANTHROPIC_API_KEY", "").startswith("sk-"),
+     MODEL_NAME = os.getenv("MTO_MODEL", "anthropic/claude-haiku-5-5")
+     if HAS_KEY else "mockllm",
+     # No key (e.g. a hosted demo without secrets) -> free offline mode, no waiting on failed calls.
      USE_LLM = MODEL_NAME != "mockllm";
 
 glob llm = Model(model_name=MODEL_NAME);

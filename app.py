@@ -93,6 +93,12 @@ st.title("🌊 Mto Salama")
 st.caption("River-crossing flood alerts for local leaders. A prototype that supports "
            "official warnings - it does not replace Kenya Met, county authorities or 1199.")
 
+if agents.USE_LLM:
+    st.caption(f"🤖 AI mode: Claude reads messages and writes alerts ({agents.MODEL_NAME}).")
+else:
+    st.caption("📴 Offline mode: built-in Swahili/English reader and alert templates "
+               "(no AI service needed). The surge model and safety rules work the same.")
+
 crossings = load_crossings()
 crossing = st.selectbox(
     "Crossing", crossings,
