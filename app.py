@@ -7,9 +7,10 @@ Run:  streamlit run app.py
 import csv
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 import jaclang  # noqa: F401  (lets Python import .jac files)
 import agents   # agents.jac - the four-agent pipeline
@@ -50,6 +51,15 @@ STYLE = {
     "SAFE-LOOKING": ("#027A48", "#ECFDF3", "LOOKS CALM - CHECK THE WATER", "INAONEKANA TULIVU"),
 }
 
+# What the leader should do right now, for each status.
+ACTION = {
+    "DO NOT CROSS": "Tell people to wait. Nobody should enter flowing water - on foot, boda or vehicle.",
+    "CAUTION": "Watch the water before anyone crosses. If it is flowing or rising, wait.",
+    "SAFE-LOOKING": "No warning signs found - still look at the water before crossing.",
+}
+
+NAIROBI = timezone(timedelta(hours=3))  # East Africa Time (no daylight saving)
+
 
 @st.cache_data
 def load_crossings() -> list:
@@ -70,21 +80,67 @@ def log_override(crossing: str, model_status: str, chosen: str, reason: str) -> 
         w = csv.writer(f)
         if new:
             w.writerow(["time", "crossing", "system_status", "leader_status", "reason"])
-        w.writerow([datetime.now().isoformat(timespec="minutes"), crossing, model_status, chosen, reason])
+        w.writerow([datetime.now(NAIROBI).isoformat(timespec="minutes"), crossing, model_status, chosen, reason])
 
 
 def status_card(status: str, override: dict | None) -> None:
     shown = override["status"] if override else status
     fg, bg, en, sw = STYLE.get(shown, STYLE["CAUTION"])
     st.markdown(
-        f"""<div style="border:3px solid {fg};background:{bg};border-radius:12px;
-        padding:18px;text-align:center;margin:8px 0">
-        <div style="font-size:34px;font-weight:800;color:{fg}">{en}</div>
-        <div style="font-size:22px;font-weight:700;color:{fg}">{sw}</div></div>""",
+        f"""<div role="alert" aria-live="assertive" style="border:3px solid {fg};background:{bg};
+        border-radius:12px;padding:18px;text-align:center;margin:8px 0">
+        <div style="font-size:34px;font-weight:800;color:{fg};line-height:1.2">{en}</div>
+        <div style="font-size:22px;font-weight:700;color:{fg}">{sw}</div>
+        <div style="font-size:16px;color:#344054;margin-top:8px">{ACTION.get(shown, "")}</div></div>""",
         unsafe_allow_html=True,
     )
     if override:
         st.info(f"Local leader override (system said **{status}**): {override['reason']}")
+
+
+def _js_string(text: str) -> str:
+    """Safe JavaScript string: alert text may come from an AI, so it must never break out of the script."""
+    return json.dumps(text).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+
+
+def read_aloud(sw_text: str, en_text: str) -> None:
+    """Free text-to-speech in the browser, for people who cannot read the alert easily."""
+    page = f"""
+        <div style="display:flex;gap:8px;font-family:sans-serif">
+          <button id="sw" style="flex:1;padding:10px;font-size:16px;border-radius:8px;
+            border:1px solid #d0d5dd;background:#fff;cursor:pointer">🔊 Soma kwa sauti (Kiswahili)</button>
+          <button id="en" style="flex:1;padding:10px;font-size:16px;border-radius:8px;
+            border:1px solid #d0d5dd;background:#fff;cursor:pointer">🔊 Read aloud (English)</button>
+        </div>
+        <div id="note" style="font-family:sans-serif;font-size:12px;color:#667085;margin-top:4px"></div>
+        <script>
+          const texts = {{sw: {_js_string(sw_text)}, en: {_js_string(en_text)}}};
+          function speak(lang) {{
+            const synth = window.speechSynthesis;
+            const note = document.getElementById("note");
+            if (!synth) {{ note.textContent = "This browser cannot read aloud."; return; }}
+            synth.cancel();
+            const u = new SpeechSynthesisUtterance(texts[lang]);
+            const voices = synth.getVoices();
+            const want = lang === "sw" ? "sw" : "en";
+            const v = voices.find(v => v.lang.toLowerCase().startsWith(want));
+            if (v) {{ u.voice = v; u.lang = v.lang; note.textContent = ""; }}
+            else {{
+              u.lang = lang === "sw" ? "sw-KE" : "en-GB";
+              note.textContent = lang === "sw" ?
+                "No Kiswahili voice on this device - using the default voice." : "";
+            }}
+            u.rate = 0.9;
+            synth.speak(u);
+          }}
+          document.getElementById("sw").onclick = () => speak("sw");
+          document.getElementById("en").onclick = () => speak("en");
+        </script>
+        """
+    if hasattr(st, "iframe"):   # newer Streamlit
+        st.iframe(page, height=72)
+    else:                       # older Streamlit
+        components.html(page, height=72)
 
 
 # ------------------------------------------------------------------ page
@@ -94,10 +150,23 @@ st.title("🌊 Mto Salama")
 st.caption("River-crossing flood alerts for local leaders. A prototype that supports "
            "official warnings - it does not replace Kenya Met, county authorities or 1199.")
 
+with st.expander("ℹ️ How it works (30 seconds)", expanded="result" not in st.session_state):
+    st.markdown(
+        "**The danger:** it is dry and sunny at the crossing, but heavy rain fell in the hills "
+        "upstream. A surge arrives hours later, and people are caught mid-crossing.\n\n"
+        "1. 🌧️ **Machine learning** reads the rain in the hills upstream and predicts the chance "
+        "of a surge by tomorrow (trained on 26 years of Kenyan river data).\n"
+        "2. 💬 **NLP** reads messages from people at the river in Kiswahili, Sheng or English.\n"
+        "3. 🤝 **Agents** combine both, check each other for missing data or disagreement, and "
+        "draft a short SMS in Kiswahili and English.\n"
+        "4. 🙋 **A local leader decides**: approve the alert, or overrule it with a reason.\n\n"
+        "Pick a scenario below and press **Check crossing**."
+    )
+
 if agents.USE_LLM:
-    st.caption(f"🤖 AI mode: Claude reads messages and writes alerts ({agents.MODEL_NAME}).")
+    st.caption(f"🤖 AI mode: Claude reads unclear messages and writes alerts ({agents.MODEL_NAME}).")
 else:
-    st.caption("📴 Offline mode: built-in Swahili/English reader and alert templates "
+    st.caption("📴 Offline mode: our own Swahili/English reader and alert templates "
                "(no AI service needed). The surge model and safety rules work the same.")
 
 crossings = load_crossings()
@@ -137,11 +206,15 @@ if st.button("Check crossing", type="primary", use_container_width=True):
         st.session_state.points = points
         st.session_state.override = None
         st.session_state.approved = False
+        st.session_state.checked_at = datetime.now(NAIROBI).strftime("%d %b %Y, %H:%M")
+        st.session_state.checked_with = "demo scenario" if mode.startswith("Demo") else "live rain data"
+        st.rerun()  # redraw so the "How it works" panel folds away
 
 res = st.session_state.get("result")
 if res:
     status_card(res["status"], st.session_state.get("override"))
-    st.caption(f"Confidence: {res['confidence']}")
+    st.caption(f"Checked {st.session_state.get('checked_at', '')} (Nairobi time) · "
+               f"{st.session_state.get('checked_with', '')} · Confidence: {res['confidence']}")
 
     st.subheader("Why")
     for r in res["reasons"]:
@@ -180,6 +253,7 @@ if res:
     st.text_area("Kiswahili", res["alert_sw"], height=120)
     st.text_area("English", res["alert_en"], height=120)
     st.caption(f"Written by: {res['alert_by']} · {len(res['alert_sw'])} characters (Kiswahili)")
+    read_aloud(res["alert_sw"], res["alert_en"])
 
     col1, col2 = st.columns(2)
     if col1.button("✅ Approve alert", use_container_width=True):
