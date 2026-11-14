@@ -3,6 +3,8 @@
 Multi-agent AI that warns local leaders when **rain upstream** makes a seasonal river
 crossing dangerous - even when it is dry and sunny at the crossing.
 
+**Live demo:** https://mto-salama.streamlit.app (if it says the app is asleep, click to wake it and wait about a minute)
+
 > Prototype for SafeSpace Hacks 2026. It supports official warnings; it does not replace
 > the Kenya Meteorological Department, county authorities or emergency services (1199).
 
