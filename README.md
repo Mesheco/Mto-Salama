@@ -16,7 +16,9 @@ crossing dangerous - even when it is dry and sunny at the crossing.
 | Skeptic | Rules (code) | Flags missing or old data and disagreements; never says "safe" |
 | Messenger | Claude (byLLM) + template backup | Drafts a short bilingual SMS alert |
 
-A local leader approves the alert or overrides it with a reason (logged).
+Anyone at the crossing can send an anonymous report on the **Report from the river** page
+(phone numbers are removed automatically). A local leader approves the alert or overrides it
+with a reason (logged).
 
 ## Run it (Windows, VS Code terminal)
 
@@ -57,7 +59,10 @@ Results: `models/listener_report.md`.
 ## Files
 
 - `agents.jac` - the four-agent pipeline (Jac language, graph + walker)
-- `app.py` - Streamlit screen
+- `app.py` - entry point with two pages:
+  - `leader.py` - "Check a crossing" (local leader)
+  - `report.py` - "Report from the river" (anyone at the crossing)
+- `reports_store.py` - anonymous river reports, kept 24 hours
 - `weather.py` - live upstream rainfall (Open-Meteo)
 - `ml/` - surge predictor: features, history download, training, prediction
 - `nlp/` - offline Listener: training, prediction, safety guard

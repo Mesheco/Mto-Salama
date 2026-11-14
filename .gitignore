@@ -14,3 +14,6 @@ overrides.csv
 
 # Large downloaded data (re-downloadable)
 data/raw/
+
+# Live reports from the river (demo server data, not for GitHub)
+data/live_reports.jsonl
