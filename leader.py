@@ -29,9 +29,9 @@ SCENARIOS = {
         "rain": 52.0, "age": 1.0,
         "features": {"rain_1d": 18, "rain_3d": 46, "rain_7d": 78, "rain_14d": 104,
                      "max_point_3d": 52, "month": 4, "long_rains": 1, "short_rains": 0},
-        "messages": "Maji imeanza kujaa kwa drift, inakuja na nguvu\n"
-                    "watu wanavuka na boda saa hii\n"
-                    "Habari za asubuhi wote",
+        "messages": "Habari za asubuhi wote\n"
+                    "Maji imeanza kujaa kwa drift, inakuja na nguvu\n"
+                    "Watu wanavuka na boda saa hii",
     },
     "Little rain, but villagers see rising water": {
         "rain": 6.0, "age": 1.0,
@@ -222,7 +222,7 @@ if river:
         c2.caption("Included in the messages below.")
 
 messages = st.text_area(
-    "Community messages (one per line)",
+    "Community messages - one message per line, each from a different person",
     key="msgs", height=110,
     help="Reports from people near the crossing. Demo scenarios use synthetic messages. "
          "No names or numbers are stored.",
