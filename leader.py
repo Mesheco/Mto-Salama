@@ -14,6 +14,7 @@ import streamlit.components.v1 as components
 
 import jaclang  # noqa: F401  (lets Python import .jac files)
 import agents   # agents.jac - the four-agent pipeline
+from contacts import show_contacts
 from ml.predict import predict_surge
 from reports_store import recent_reports
 from weather import get_upstream_rain
@@ -177,6 +178,8 @@ crossing = st.selectbox(
     "Crossing", crossings,
     format_func=lambda c: c["name"] + (" (fictional demo)" if c.get("fictional") else ""),
 )
+
+show_contacts(crossing)
 
 mode = st.radio("Data", ["Demo scenario (works offline)", "Live upstream rain"], horizontal=True)
 

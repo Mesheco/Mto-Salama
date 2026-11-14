@@ -9,6 +9,7 @@ import time
 
 import streamlit as st
 
+from contacts import show_contacts
 from reports_store import MAX_LEN, add_report, recent_reports
 
 CHOICES = {
@@ -33,14 +34,16 @@ st.markdown(
     "Are you at a river crossing? Tell your local leader what you see. "
     "**Uko kwa drift?** Mjulishe kiongozi wako unachoona."
 )
-st.error("In danger right now? Move away from the water and call **1199**. "
-         "/ Uko hatarini sasa? Ondoka karibu na maji na upige **1199**.")
+st.error("In danger right now? Move away from the water and call **999** or **1199**. "
+         "/ Uko hatarini sasa? Ondoka karibu na maji na upige **999** au **1199**.")
 
 crossings = load_crossings()
 crossing = st.selectbox(
     "Crossing / Drift", crossings,
     format_func=lambda c: c["name"] + (" (fictional demo)" if c.get("fictional") else ""),
 )
+show_contacts(crossing)
+
 choice = st.radio("What do you see? / Unaona nini?", list(CHOICES), index=None)
 details = st.text_area(
     "Add details (optional) / Ongeza maelezo",
