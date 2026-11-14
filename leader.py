@@ -148,8 +148,8 @@ def read_aloud(sw_text: str, en_text: str) -> None:
 # ------------------------------------------------------------------ page
 
 st.title("🌊 Mto Salama")
-st.caption("River-crossing flood alerts for local leaders. A prototype that supports "
-           "official warnings - it does not replace Kenya Met, county authorities or 1199.")
+st.markdown("**River-crossing flood alerts for local leaders. A prototype that supports "
+            "official warnings - it does not replace Kenya Met, county authorities or 1199.**")
 
 with st.expander("ℹ️ How it works (30 seconds)", expanded="result" not in st.session_state):
     st.markdown(
