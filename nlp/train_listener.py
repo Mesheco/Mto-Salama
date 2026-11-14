@@ -137,7 +137,9 @@ def main() -> None:
         "rising, flood...) from being read as 'all clear' unless they are negated. "
         f"Messages below {UNSURE_BELOW:.0%} confidence are passed to Claude when an AI key is set, "
         "or marked as unsure. An 'all clear' report never lowers the warning, and one report "
-        "alone never changes the crossing status, so a misread message cannot make the app say 'safe'.",
+        "alone can raise the status to CAUTION at most (DO NOT CROSS needs heavy upstream rain or "
+        "two or more reports), so a single misread message cannot make the app say 'safe' or trigger "
+        "DO NOT CROSS.",
     ]
     with open(os.path.join(MODEL_DIR, "listener_report.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(report) + "\n")

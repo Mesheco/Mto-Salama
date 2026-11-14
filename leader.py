@@ -147,6 +147,9 @@ def read_aloud(sw_text: str, en_text: str) -> None:
 
 # ------------------------------------------------------------------ page
 
+LOGO = os.path.join("assets", "logo.jpg")
+if os.path.exists(LOGO):
+    st.image(LOGO, width="stretch")
 st.title("🌊 Mto Salama")
 st.markdown("**River-crossing flood alerts for local leaders. A prototype that supports "
             "official warnings - it does not replace Kenya Met, county authorities or 1199.**")
@@ -220,7 +223,7 @@ if river:
     c1, c2 = st.columns([3, 2])
     c1.info(f"📥 **{len(river)} report(s) from the river** in the last 24 hours (latest {latest}).")
     if mode.startswith("Demo"):
-        c2.button("Add them to the messages", on_click=add_river_reports, use_container_width=True)
+        c2.button("Add them to the messages", on_click=add_river_reports, width="stretch")
     else:
         c2.caption("Included in the messages below.")
 
@@ -231,7 +234,7 @@ messages = st.text_area(
          "No names or numbers are stored.",
 )
 
-if st.button("Check crossing", type="primary", use_container_width=True):
+if st.button("Check crossing", type="primary", width="stretch"):
     msgs = [m for m in messages.splitlines() if m.strip()]
     with st.spinner("Agents are reading reports and checking the risk..."):
         ml = predict_surge(features) if features else {"available": False}
@@ -290,12 +293,12 @@ if res:
     read_aloud(res["alert_sw"], res["alert_en"])
 
     col1, col2 = st.columns(2)
-    if col1.button("✅ Approve alert", use_container_width=True):
+    if col1.button("✅ Approve alert", width="stretch"):
         st.session_state.approved = True
     if st.session_state.get("approved"):
         st.success("Approved. In a full version this would be sent by SMS. Nothing is sent in this prototype.")
 
-    with col2.popover("🙋 I disagree", use_container_width=True):
+    with col2.popover("🙋 I disagree", width="stretch"):
         choice = st.selectbox("What do you see at the river?", list(STYLE))
         reason = st.text_input("Reason (e.g. checked the drift at 6 am, water is low)")
         if st.button("Save override"):

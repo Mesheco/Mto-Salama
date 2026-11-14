@@ -5,6 +5,7 @@ Anyone near a crossing can tell the local leader what they see, anonymously.
 """
 
 import json
+import os
 import time
 
 import streamlit as st
@@ -19,6 +20,7 @@ CHOICES = {
     "✅ Maji iko chini · Water is low": "Maji iko chini, hali ni shwari",
     "✏️ Kitu kingine · Something else": "",
 }
+LOGO = os.path.join("assets", "logo.jpg")
 LIMIT, WINDOW_S = 5, 600  # at most 5 reports per 10 minutes from one browser
 
 
@@ -28,6 +30,8 @@ def load_crossings() -> list:
         return json.load(f)["crossings"]
 
 
+if os.path.exists(LOGO):
+    st.image(LOGO, width="stretch")
 st.title("💬 Report from the river")
 st.caption("Ripoti kutoka mtoni")
 st.markdown(
@@ -53,7 +57,7 @@ details = st.text_area(
 st.caption("🔒 Don't write your name or phone number. We keep only the message and the time, "
            "for 24 hours. / Usiandike jina wala namba ya simu.")
 
-if st.button("Send report / Tuma ripoti", type="primary", use_container_width=True):
+if st.button("Send report / Tuma ripoti", type="primary", width="stretch"):
     sent = [t for t in st.session_state.get("sent_times", []) if time.time() - t < WINDOW_S]
     text = ". ".join(p for p in [CHOICES.get(choice or "", ""), details.strip()] if p)
     if len(sent) >= LIMIT:

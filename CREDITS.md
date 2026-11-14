@@ -6,6 +6,7 @@
   GloFAS - Copernicus Emergency Management Service
 - Community messages (`data/messages*.csv`): synthetic, written for this project. No real people's data.
 - Demo crossing "Mto Kavuthu drift": fictional, modelled on Makueni seasonal river crossings.
+- Logo (`assets/logo.jpg`): supplied by the project author for this project.
 
 ## AI, language and libraries
 - LLM (optional): Claude Haiku 5.5 via the Anthropic Claude API
