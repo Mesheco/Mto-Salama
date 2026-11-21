@@ -10,6 +10,49 @@ crossing dangerous - even when it is dry and sunny at the crossing.
 > Prototype for SafeSpace Hacks 2026. It supports official warnings; it does not replace
 > the Kenya Meteorological Department, county authorities or emergency services (999 / 1199).
 
+**Built by:** Meshack Mutinda, Open University of Kenya (solo entry), during SafeSpace Hacks
+(17 Oct - 22 Nov 2026). See [DEVLOG.md](DEVLOG.md) and the commit history.
+
+![DO NOT CROSS with reasons](assets/screenshots/do_not_cross_with_reasons.jpg)
+
+## The problem
+
+Every rainy season in Kenya, people drown at seasonal river crossings ("drifts"). It is often
+dry and sunny where they stand - the rain fell hours earlier in the hills upstream, and the surge
+arrives without warning. In April 2024, nine people died when a truck crossing the swollen
+Kwa Muswii River in Makueni County was swept away. Today's warnings are regional ("flash floods
+possible in parts of the region"); nobody tells a village *"don't cross your drift today"*.
+
+**Who it helps:** a local leader - chief, community health volunteer, school head - deciding
+whether people can cross this morning.
+
+**Safer outcome:** before anyone crosses, the local leader knows whether upstream rain makes
+this crossing dangerous today, and why.
+
+## Try it in one minute
+
+Open https://mto-salama.streamlit.app, then:
+
+1. **Sunny here, heavy rain upstream** -> *Check crossing* -> **DO NOT CROSS**, 88% surge chance, with reasons.
+2. **Little rain, but villagers see rising water** -> still **DO NOT CROSS**, low confidence; the app explains the disagreement.
+3. **Weather service down** -> **CAUTION** - with no data it never says "safe".
+4. Open **Report from the river**, send "Water is rising", go back and press *Add them to the messages*.
+5. Try **I disagree** (override with a reason), the **read-aloud** buttons and **Emergency contacts**.
+
+| Report from the river | Bilingual alert, read aloud | Leader override |
+|---|---|---|
+| ![Report page](assets/screenshots/report_from_the_river.jpg) | ![Alert](assets/screenshots/bilingual_alert_read_aloud.jpg) | ![Override](assets/screenshots/weather_down_leader_override.jpg) |
+
+## Results
+
+| Part | How it was tested | Result |
+|---|---|---|
+| Surge model (Random Forest) | Trained 2000-2014, thresholds on 2015-2018, scored on **2019-2025 (unseen years)**, Nyando + Athi rivers | ROC AUC **0.84**; at CAUTION it catches **78%** of surges (about 1 in 4 calm days also gets CAUTION) |
+| Listener (NLP) | Repeated 5-fold cross-validation on 260 synthetic Kiswahili/Sheng/English messages | **~80%** accuracy with the safety guard; "water rising" read as "all clear" cut from **22% to 12%** |
+| Whole app | Normal, confusing and failure scenarios | DO NOT CROSS, DO NOT CROSS (low confidence), CAUTION - as intended |
+
+Full reports: [models/report.md](models/report.md), [models/listener_report.md](models/listener_report.md).
+
 ## How the agents work together
 
 ```mermaid
@@ -46,11 +89,20 @@ to the Messenger. Every step is written to a trace that the app shows under "Age
 | 4 | Messenger | Claude (byLLM) or templates | Friendly wording; a template if AI is unavailable |
 | 5 | Local leader | Human | A person approves or overrules every alert |
 
-## Run it (Windows, VS Code terminal, Python 3.12)
+## Trust, safety and privacy
+
+- **Explains every warning:** surge chance, how unusual the rain is, how each message was read.
+- **Never says "safe":** the best status is "LOOKS CALM - CHECK THE WATER"; missing or old data gives CAUTION.
+- **A human decides:** the leader approves or overrules every alert (with a reason, logged). Nothing is sent automatically.
+- **Works when things fail:** own offline NLP model and templates if no AI service; simple rain rules if no model.
+- **Minimal data:** no names, phone numbers or locations of people; phone numbers typed into reports are removed; reports kept 24 hours. All demo data is synthetic.
+- **Accessible:** Kiswahili and English, status in words (not colour alone), read-aloud, screen-reader alert, phone-friendly, emergency numbers on every page.
+
+## Run it (Python 3.12)
 
 ```
 python -m venv .venv
-.venv\Scripts\activate
+.venv\Scripts\activate          # Windows  (Mac/Linux: source .venv/bin/activate)
 pip install -r requirements.txt
 streamlit run app.py        # the app in your browser
 jac run agents.jac          # the agents in the terminal
@@ -96,8 +148,15 @@ Results: `models/listener_report.md`.
 
 ## Limitations
 
-Rainfall and river models are coarse (about 5 km for river flow) and can miss small
-seasonal streams. Community reports help fill that gap, but the tool can be wrong -
-people should always look at the water and follow official warnings.
+- The surge model catches about 4 in 5 surges on unseen years - it supports judgement, it does not replace it.
+- River flow is modelled (GloFAS, about 5 km), not measured, and cannot see small streams directly;
+  live upstream rain and people's reports carry the decision at small crossings.
+- The NLP model learned from synthetic messages; it needs real, consented messages before field use.
+- Alerts are drafted, not sent; reports reset when the free demo server restarts.
+
+## What's next
+
+Test with a chief or community health volunteer at a real Makueni crossing; retrain the NLP model
+on real messages; add **Kikamba**; send approved alerts by SMS; work with county disaster teams.
 
 See `CREDITS.md` for data, tools and AI assistance.
