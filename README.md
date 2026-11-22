@@ -2,6 +2,8 @@
 
 # Mto Salama (Safe River)
 
+[![tests](https://github.com/Mesheco/Mto-Salama/actions/workflows/tests.yml/badge.svg)](https://github.com/Mesheco/Mto-Salama/actions/workflows/tests.yml)
+
 Multi-agent AI that warns local leaders when **rain upstream** makes a seasonal river
 crossing dangerous - even when it is dry and sunny at the crossing.
 
@@ -36,8 +38,9 @@ Open https://mto-salama.streamlit.app, then:
 1. **Sunny here, heavy rain upstream** -> *Check crossing* -> **DO NOT CROSS**, 88% surge chance, with reasons.
 2. **Little rain, but villagers see rising water** -> still **DO NOT CROSS**, low confidence; the app explains the disagreement.
 3. **Weather service down** -> **CAUTION** - with no data it never says "safe".
-4. Open **Report from the river**, send "Water is rising", go back and press *Add them to the messages*.
-5. Try **I disagree** (override with a reason), the **read-aloud** buttons and **Emergency contacts**.
+4. **Kikamba reports, little rain upstream (beta)** -> **CAUTION**: the Listener reads the Kikamba reports and flags people crossing.
+5. Open **Report from the river** (try **Language → Kikamba (beta)**), send "Water is rising", go back and press *Add them to the messages*.
+6. Try **I disagree** (override with a reason), the **read-aloud** buttons and **Emergency contacts**.
 
 | Report from the river | Bilingual alert, read aloud | Leader override |
 |---|---|---|
@@ -50,6 +53,7 @@ Open https://mto-salama.streamlit.app, then:
 | Surge model (Random Forest) | Trained 2000-2014, thresholds on 2015-2018, scored on **2019-2025 (unseen years)**, Nyando + Athi rivers | ROC AUC **0.84**; at CAUTION it catches **78%** of surges (about 1 in 4 calm days also gets CAUTION) |
 | Listener (NLP) | Repeated 5-fold cross-validation on 260 synthetic Kiswahili/Sheng/English messages | **~80%** accuracy with the safety guard; "water rising" read as "all clear" cut from **22% to 12%** |
 | Whole app | Normal, confusing and failure scenarios | DO NOT CROSS, DO NOT CROSS (low confidence), CAUTION - as intended |
+| Automated tests | 17 checks with `pytest`, run on every push by GitHub Actions | Scenarios, "never says safe", danger-word guard, Kikamba, phone-number removal |
 
 Full reports: [models/report.md](models/report.md), [models/listener_report.md](models/listener_report.md).
 
@@ -112,6 +116,17 @@ No API key is needed: without one, the app runs in offline mode (own NLP model a
 templates). To use Claude, copy `.env.example` to `.env`, add your Anthropic API key and set
 `MTO_MODEL=anthropic/claude-haiku-5-5`.
 
+## Run the tests
+
+```
+pip install pytest
+python -m pytest -q    # 17 checks, offline, no API key
+```
+
+They check the safety promises: the required scenarios, "never says safe" when data is missing,
+that danger messages are never read as "all clear", Kikamba reading, and that phone numbers are
+removed from river reports. GitHub runs them automatically on every push (badge at the top).
+
 ## Train the surge model
 
 ```
@@ -136,10 +151,13 @@ Results: `models/listener_report.md`.
 - `app.py` - entry point with two pages:
   - `leader.py` - "Check a crossing" (local leader)
   - `report.py` - "Report from the river" (anyone at the crossing)
+- `scenarios.py` - the demo scenarios (also used by the tests)
+- `tests/` - automated checks (`python -m pytest -q`)
+- `.streamlit/config.toml` - app colours (river-green theme)
 - `reports_store.py` - anonymous river reports, kept 24 hours
 - `weather.py` - live upstream rainfall (Open-Meteo)
 - `ml/` - surge predictor: features, history download, training, prediction
-- `nlp/` - offline Listener: training, prediction, safety guard
+- `nlp/` - offline Listener: training, prediction, safety guard, Kikamba word list (beta)
 - `data/messages*.csv` - synthetic community messages (no real people's data)
 - `crossings.json` - the fictional demo crossing and its upstream points
 - `contacts.py` - emergency numbers shown in the app

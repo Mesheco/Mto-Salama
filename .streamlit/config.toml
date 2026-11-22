@@ -1,0 +1,7 @@
+[theme]
+base = "light"
+primaryColor = "#0B7A5C"              # river green, matches the logo
+backgroundColor = "#F4F9F7"           # soft mint-white page
+secondaryBackgroundColor = "#E2F0EA"  # side panels, inputs, expanders
+textColor = "#1D2939"                 # dark slate - high contrast for reading
+font = "sans serif"

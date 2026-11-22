@@ -13,6 +13,13 @@ import streamlit as st
 from contacts import show_contacts
 from reports_store import MAX_LEN, add_report, recent_reports
 
+KIKAMBA_CHOICES = {  # beta: words from published Kamba sources, see nlp/kikamba.py
+    "🌊 Usi wausia kiwu · Water is rising / overflowing": "Usi wausia kiwu",
+    "🚶 Andũ nimaiinga usi · People are crossing": "Andu nimaiinga usi yu",
+    "🌉 Kĩao / drift damaged · Crossing damaged": "Drift au daraja imeharibika",
+    "✅ Kĩw'ũ kĩnini · Water is low": "Kiwu kinini usi",
+    "✏️ Kitu kingine · Something else": "",
+}
 CHOICES = {
     "🌊 Maji yanaongezeka · Water is rising": "Maji yanaongezeka kwa drift",
     "🚶 Watu wanavuka · People are crossing": "Watu wanavuka sasa",
@@ -48,7 +55,12 @@ crossing = st.selectbox(
 )
 show_contacts(crossing)
 
-choice = st.radio("What do you see? / Unaona nini?", list(CHOICES), index=None)
+lang = st.selectbox("Language / Lugha", ["Kiswahili + English", "Kikamba (beta)"])
+options = KIKAMBA_CHOICES if lang.startswith("Kikamba") else CHOICES
+if lang.startswith("Kikamba"):
+    st.caption("Kikamba choices are in beta: words come from published Kamba dictionaries "
+               "and are still being checked by native speakers.")
+choice = st.radio("What do you see? / Unaona nini?", list(options), index=None, key=f"choice_{lang}")
 details = st.text_area(
     "Add details (optional) / Ongeza maelezo",
     max_chars=MAX_LEN, height=90,
@@ -60,7 +72,7 @@ st.caption("🔒 Don't write your name or phone number. We keep only the message
 
 if st.button("Send report / Tuma ripoti", type="primary", width="stretch"):
     sent = [t for t in st.session_state.get("sent_times", []) if time.time() - t < WINDOW_S]
-    text = ". ".join(p for p in [CHOICES.get(choice or "", ""), details.strip()] if p)
+    text = ". ".join(p for p in [options.get(choice or "", ""), details.strip()] if p)
     if len(sent) >= LIMIT:
         st.warning("You have sent several reports already - please wait a few minutes. "
                    "/ Subiri dakika chache.")
