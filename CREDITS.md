@@ -7,6 +7,10 @@
 - Community messages (`data/messages*.csv`): synthetic, written for this project. No real people's data.
 - Demo crossing "Mto Kavuthu drift": fictional, modelled on Makueni seasonal river crossings.
 - Logo (`assets/logo.jpg`): supplied by the project author for this project.
+- Kikamba words (`nlp/kikamba.py`, beta): Peace Corps Kikamba Self-Instruction Manual
+  (https://www.livelingua.com/peace-corps/Kikamba/Kikamba%20manual.pdf); Lugha Yangu Kamba dictionary
+  (https://lughayangu.com/kamba); Bastin, Coupez & Mann (1999) Bantu lexicon, Kamba E55
+  (https://www.africamuseum.be/lexico_bantu/E/E55_kamba.pdf). To be checked by native speakers.
 
 ## AI, language and libraries
 - LLM (optional): Claude Haiku 5.5 via the Anthropic Claude API

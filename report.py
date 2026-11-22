@@ -53,6 +53,7 @@ details = st.text_area(
     "Add details (optional) / Ongeza maelezo",
     max_chars=MAX_LEN, height=90,
     placeholder="e.g. Maji imefika kwa daraja, inakuja na nguvu",
+    help="Kiswahili, Sheng, English or Kikamba, e.g. \"usi wausia kiwu\" (Kikamba reading is in beta).",
 )
 st.caption("🔒 Don't write your name or phone number. We keep only the message and the time, "
            "for 24 hours. / Usiandike jina wala namba ya simu.")

@@ -273,6 +273,10 @@ walker RiskCheck {
                 if local["guarded"] {
                     r.read_by = "NLP model + safety guard (danger words)";
                 }
+                if local.get("kikamba", False) {
+                    kw = ", ".join([str(w) for w in list(local.get("kikamba_words", []))]);
+                    r.read_by = f"Kikamba word list (beta): {kw}";
+                }
                 unsure = bool(local["unsure"]);
             } else {
                 r.kind = keyword_classify(r.text);

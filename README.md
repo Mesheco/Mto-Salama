@@ -82,7 +82,7 @@ to the Messenger. Every step is written to a trace that the app shows under "Age
 
 | Step | Agent | Type | Why this type |
 |---|---|---|---|
-| 1 | Listener | Own NLP model + safety guard; Claude only when unsure | Free and offline for most messages; AI only for hard ones |
+| 1 | Listener | Own NLP model + safety guard + Kikamba word list (beta); Claude only when unsure | Free and offline for most messages; AI only for hard ones |
 | - | Surge model | Machine learning (Random Forest) | Learns the rain-to-surge pattern from 26 years of river data |
 | 2 | Fusion | Rules (code) | Safety decisions must be predictable and explainable |
 | 3 | Skeptic | Rules (code) | Checks the others; works even when AI is offline |
@@ -153,6 +153,15 @@ Results: `models/listener_report.md`.
   live upstream rain and people's reports carry the decision at small crossings.
 - The NLP model learned from synthetic messages; it needs real, consented messages before field use.
 - Alerts are drafted, not sent; reports reset when the free demo server restarts.
+
+## Kikamba (beta)
+
+Makueni is a Kamba-speaking county, so the Listener also recognises key Kikamba reports, using words
+from published sources (Peace Corps Kikamba manual, Lugha Yangu Kamba dictionary, Bantu lexicon E55) -
+for example *usi* (river), *kĩw'ũ* (water), *mbua* (rain), *kĩao* (bridge), *kũĩnga* (to cross) and the
+sentence *"usi wausia kiwu ndukilika"* ("it's impossible to cross a river when it overflows").
+It only reads Kikamba; alerts stay in Kiswahili and English until a native speaker checks Kikamba
+wording. The rules have no effect on the 260 Kiswahili/Sheng/English test messages. See `nlp/kikamba.py`.
 
 ## What's next
 

@@ -19,6 +19,8 @@ import re
 
 import joblib
 
+from nlp.kikamba import kikamba_classify
+
 MODEL_PATH = os.path.join("models", "listener.joblib")
 META_PATH = os.path.join("models", "listener.json")
 _cache: dict = {}
@@ -62,10 +64,23 @@ def classify_local(text: str) -> dict:
     guarded = False
     if label in ("ALL_CLEAR", "IRRELEVANT") and has_danger_words(text):
         label, guarded = "WATER_RISING", True
+    unsure = conf < float(meta["unsure_below"]) or guarded
+
+    # Kikamba (beta): the model only learned Kiswahili/Sheng/English, so a clear
+    # Kikamba match takes over when the model is unsure or reads it as irrelevant.
+    # It never turns a "water rising" reading into "all clear".
+    kamba_label, kamba_words = kikamba_classify(text)
+    kikamba = False
+    if kamba_label and (unsure or label == "IRRELEVANT" or kamba_label == "WATER_RISING") \
+            and not (label == "WATER_RISING" and kamba_label != "WATER_RISING"):
+        label, kikamba, unsure = kamba_label, True, False
+
     return {
         "available": True,
         "label": label,
         "confidence": round(conf, 3),
-        "unsure": conf < float(meta["unsure_below"]) or guarded,
+        "unsure": unsure,
         "guarded": guarded,
+        "kikamba": kikamba,
+        "kikamba_words": kamba_words if kikamba else [],
     }
