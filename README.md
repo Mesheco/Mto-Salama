@@ -166,6 +166,6 @@ wording. The rules have no effect on the 260 Kiswahili/Sheng/English test messag
 ## What's next
 
 Test with a chief or community health volunteer at a real Makueni crossing; retrain the NLP model
-on real messages; add **Kikamba**; send approved alerts by SMS; work with county disaster teams.
+on real messages; Kikamba alerts checked by native speakers; send approved alerts by SMS; work with county disaster teams.
 
 See `CREDITS.md` for data, tools and AI assistance.
