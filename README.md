@@ -46,6 +46,8 @@ Open https://mto-salama.streamlit.app, then:
 |---|---|---|
 | ![Report page](assets/screenshots/report_from_the_river.jpg) | ![Alert](assets/screenshots/bilingual_alert_read_aloud.jpg) | ![Override](assets/screenshots/weather_down_leader_override.jpg) |
 
+![Report page in Kikamba (beta)](assets/screenshots/report_in_kikamba.jpg)
+
 ## Results
 
 | Part | How it was tested | Result |
