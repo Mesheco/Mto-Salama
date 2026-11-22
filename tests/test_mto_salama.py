@@ -76,13 +76,15 @@ def test_danger_messages_never_read_as_all_clear(text):
     ("usi wausia kiwu ndukilika", "WATER_RISING"),
     ("Kĩw'ũ nĩ kĩingĩ usi", "WATER_RISING"),
     ("andu nimaiinga usi yu", "PEOPLE_CROSSING"),
+    ("Usi wausua kiwu", "WATER_RISING"),
+    ("Andũ nimekuinga usi", "PEOPLE_CROSSING"),
     ("kiwu kinini usi", "ALL_CLEAR"),
 ])
 def test_kikamba_reports(text, label):
     assert classify_local(text)["label"] == label
 
 
-@pytest.mark.parametrize("text", ["Usiache kuangalia maji", "Habari za asubuhi wote", "Watu wanavuka sasa"])
+@pytest.mark.parametrize("text", ["Usiache kuangalia maji", "Kindu kingi", "Habari za asubuhi wote", "Watu wanavuka sasa"])
 def test_kikamba_rules_ignore_kiswahili(text):
     assert kikamba_classify(text)[0] == ""
 

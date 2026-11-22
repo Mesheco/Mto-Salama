@@ -29,6 +29,9 @@ Words come from published sources (not invented), checked 22 Nov 2026:
   kĩsululu          bicycle                    [PC]
   -nini             small / a little           [PC]
   "usi wausia kiwu ndukilika" = "it's impossible to cross a river when it overflows"  [LY]
+  Corrected by a Kikamba speaker for the report page (2026-11-22):
+  "usi wausua kiwu" = water is rising / overflowing; "andũ nimekuinga usi" = people are crossing;
+  "kindu kingi" = something else
 
 Rules are deliberately cautious: a Kikamba message is only labelled when it clearly
 matches; anything else stays "unsure" so a person (or Claude, if set up) reads it.
@@ -59,7 +62,7 @@ def _much(tok: str) -> bool:      # kingi, mingi, ingi, kinene, munene ...
 
 def _overflow(tok: str) -> bool:  # wausia (overflowed), ndukilika (cannot be crossed)
     # "ausia" ending only: avoids Kiswahili words like usiache / usiangalie ("don't ...")
-    return tok.endswith("ausia") or tok == "ndukilika"
+    return tok.endswith(("ausia", "ausua")) or tok == "ndukilika"
 
 
 def _crossing(tok: str) -> bool:  # kuinga, ikuinga, kwinga, maiinga, nimaiinga ...

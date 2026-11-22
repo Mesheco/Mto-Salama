@@ -53,7 +53,7 @@ Open https://mto-salama.streamlit.app, then:
 | Surge model (Random Forest) | Trained 2000-2014, thresholds on 2015-2018, scored on **2019-2025 (unseen years)**, Nyando + Athi rivers | ROC AUC **0.84**; at CAUTION it catches **78%** of surges (about 1 in 4 calm days also gets CAUTION) |
 | Listener (NLP) | Repeated 5-fold cross-validation on 260 synthetic Kiswahili/Sheng/English messages | **~80%** accuracy with the safety guard; "water rising" read as "all clear" cut from **22% to 12%** |
 | Whole app | Normal, confusing and failure scenarios | DO NOT CROSS, DO NOT CROSS (low confidence), CAUTION - as intended |
-| Automated tests | 17 checks with `pytest`, run on every push by GitHub Actions | Scenarios, "never says safe", danger-word guard, Kikamba, phone-number removal |
+| Automated tests | 20 checks with `pytest`, run on every push by GitHub Actions | Scenarios, "never says safe", danger-word guard, Kikamba, phone-number removal |
 
 Full reports: [models/report.md](models/report.md), [models/listener_report.md](models/listener_report.md).
 
@@ -120,7 +120,7 @@ templates). To use Claude, copy `.env.example` to `.env`, add your Anthropic API
 
 ```
 pip install pytest
-python -m pytest -q    # 17 checks, offline, no API key
+python -m pytest -q    # 20 checks, offline, no API key
 ```
 
 They check the safety promises: the required scenarios, "never says safe" when data is missing,

@@ -14,11 +14,11 @@ from contacts import show_contacts
 from reports_store import MAX_LEN, add_report, recent_reports
 
 KIKAMBA_CHOICES = {  # beta: words from published Kamba sources, see nlp/kikamba.py
-    "🌊 Usi wausia kiwu · Water is rising / overflowing": "Usi wausia kiwu",
-    "🚶 Andũ nimaiinga usi · People are crossing": "Andu nimaiinga usi yu",
+    "🌊 Usi wausua kiwu · Water is rising / overflowing": "Usi wausua kiwu",
+    "🚶 Andũ nimekuinga usi · People are crossing": "Andũ nimekuinga usi",
     "🌉 Kĩao / drift damaged · Crossing damaged": "Drift au daraja imeharibika",
     "✅ Kĩw'ũ kĩnini · Water is low": "Kiwu kinini usi",
-    "✏️ Kitu kingine · Something else": "",
+    "✏️ Kindu kingi · Something else": "",
 }
 CHOICES = {
     "🌊 Maji yanaongezeka · Water is rising": "Maji yanaongezeka kwa drift",
@@ -58,14 +58,14 @@ show_contacts(crossing)
 lang = st.selectbox("Language / Lugha", ["Kiswahili + English", "Kikamba (beta)"])
 options = KIKAMBA_CHOICES if lang.startswith("Kikamba") else CHOICES
 if lang.startswith("Kikamba"):
-    st.caption("Kikamba choices are in beta: words come from published Kamba dictionaries "
-               "and are still being checked by native speakers.")
+    st.caption("Kikamba choices are in beta: wording corrected by a Kikamba speaker; "
+               "more checks with local users are planned.")
 choice = st.radio("What do you see? / Unaona nini?", list(options), index=None, key=f"choice_{lang}")
 details = st.text_area(
     "Add details (optional) / Ongeza maelezo",
     max_chars=MAX_LEN, height=90,
     placeholder="e.g. Maji imefika kwa daraja, inakuja na nguvu",
-    help="Kiswahili, Sheng, English or Kikamba, e.g. \"usi wausia kiwu\" (Kikamba reading is in beta).",
+    help="Kiswahili, Sheng, English or Kikamba, e.g. \"usi wausua kiwu\" (Kikamba reading is in beta).",
 )
 st.caption("🔒 Don't write your name or phone number. We keep only the message and the time, "
            "for 24 hours. / Usiandike jina wala namba ya simu.")

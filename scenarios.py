@@ -22,8 +22,8 @@ SCENARIOS = {
         "rain": 6.0, "age": 1.0,
         "features": {"rain_1d": 1, "rain_3d": 4, "rain_7d": 9, "rain_14d": 15,
                      "max_point_3d": 6, "month": 4, "long_rains": 1, "short_rains": 0},
-        "messages": "Usi wausia kiwu, ndukilika\n"
-                    "Andu nimaiinga usi yu",
+        "messages": "Usi wausua kiwu\n"
+                    "Andũ nimekuinga usi",
     },
     "Weather service down": {
         "rain": -1.0, "age": 0.0, "features": None,
